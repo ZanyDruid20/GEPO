@@ -1,5 +1,9 @@
 'use client';
 
+// Force dynamic rendering to avoid static prerender errors with searchParams for vercel deployment
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
