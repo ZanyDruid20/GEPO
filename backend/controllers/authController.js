@@ -37,7 +37,8 @@ exports.githubCallback = (req, res, next) => {
                 }
                 // Successful authentication
                 req.session.githubAccessToken = dbUser.accessToken;
-                return res.status(200).json({ message: 'Authentication successful', user: dbUser });
+                // Redirect to frontend dashboard
+                return res.redirect('http://localhost:3000/dashboard');
             });
         } catch (error) {
             return res.status(500).json({ message: 'Database error', error: error.message });

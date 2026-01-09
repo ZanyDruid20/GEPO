@@ -9,14 +9,21 @@ const PER_PAGE = 100;
 // Fetch recent repos for a given user
 async function getRepos(username, token = TOKEN) {
   return withCache(`repos:${username}:${tokenKey(token)}`, 300, async () => {
-    const response = await axios.get(`${GITHUB_API}/users/${username}/repos`, {
-      headers: {
-        Accept: 'application/vnd.github+json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
-      },
-      params: { per_page: PER_PAGE, sort: 'updated' }
-    });
-    return response.data;
+    try {
+      const response = await axios.get(`${GITHUB_API}/users/${username}/repos`, {
+        headers: {
+          Accept: 'application/vnd.github+json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        params: { per_page: PER_PAGE, sort: 'updated' }
+      });
+      return response.data;
+    } catch (err) {
+      const status = err.response?.status;
+      const data = err.response?.data;
+      console.error('getRepos failed', { status, data, message: err.message });
+      throw err;
+    }
   });
 }
 
@@ -72,6 +79,11 @@ async function countCommitsForRepo(owner, repo, { author, token = TOKEN, since }
           ...(author ? { author } : {}),
           ...(since ? { since } : {})
         }
+      }).catch(err => {
+        const status = err.response?.status;
+        const data = err.response?.data;
+        console.error('countCommitsForRepo failed', { owner, repo, status, data, message: err.message });
+        throw err;
       });
 
       const batch = res.data || [];
@@ -86,16 +98,22 @@ async function countCommitsForRepo(owner, repo, { author, token = TOKEN, since }
 
 // Total commits across all repos for a username
 async function totalCommitsForUser(username, { token = TOKEN, since } = {}) {
-  // get all of the repos for the user and initialize grand total
-  const repos = await getRepos(username, token);
-  let grandTotal = 0;
-  // we iterate over each repo to count commits
-  for (const repo of repos) {
-    // add up the commits from each repo to the grand total
-    grandTotal += await countCommitsForRepo(username, repo.name, { author: username, token, since });
+  try {
+    // get all of the repos for the user and initialize grand total
+    const repos = await getRepos(username, token);
+    let grandTotal = 0;
+    // we iterate over each repo to count commits
+    for (const repo of repos) {
+      // add up the commits from each repo to the grand total
+      grandTotal += await countCommitsForRepo(username, repo.name, { author: username, token, since });
+    }
+    // return the final object
+    return { username, repoCount: repos.length, totalCommits: grandTotal };
+  } catch (err) {
+    console.error(`Failed to fetch commits for ${username}:`, err.message);
+    // Return empty data instead of crashing
+    return { username, repoCount: 0, totalCommits: 0 };
   }
-  // return the final object
-  return { username, repoCount: repos.length, totalCommits: grandTotal };
 }
 // Per-repo summary
 async function summarizeCommits(username, { token = TOKEN, since, author } = {}) {

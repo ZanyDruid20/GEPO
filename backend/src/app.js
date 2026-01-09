@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
+const cors = require('cors');
 const passport = require('../config/passport');
 const { connectDB } = require('../config/mongo');
 const { limiter } = require('../middleware/rateLimit_middleware');
@@ -15,13 +16,24 @@ const app = express();
 connectDB();
 
 // Middleware
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type']
+}));
 app.use(express.json());
 app.use(limiter); // Rate limit all requests
+const isProd = process.env.NODE_ENV === 'production';
+
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  cookie: { httpOnly: true, sameSite: 'lax', secure: false }
+  // Use Lax in dev (allowed for same-site ports like localhost:3000↔4000) and Secure+None in prod.
+  cookie: isProd
+    ? { httpOnly: true, sameSite: 'none', secure: true }
+    : { httpOnly: true, sameSite: 'lax', secure: false }
 }));
 app.use(passport.initialize());
 app.use(passport.session());
@@ -49,7 +61,16 @@ const server = new ApolloServer({
 
 async function startApolloServer() {
   await server.start();
-  server.applyMiddleware({ app, path: '/graphql' });
+  server.applyMiddleware({
+    app,
+    path: '/graphql',
+    cors: {
+      origin: 'http://localhost:3000',
+      credentials: true,
+      methods: ['GET', 'POST'],
+      allowedHeaders: ['Content-Type', 'Authorization']
+    }
+  });
 }
 
 startApolloServer();

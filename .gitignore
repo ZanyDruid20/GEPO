@@ -1,0 +1,4 @@
+
+# Backend env
+backend/.env
+backend/.env.local
