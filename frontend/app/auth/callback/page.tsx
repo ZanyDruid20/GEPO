@@ -1,9 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function CallbackPage() {
+  return (
+    <Suspense fallback={<AuthLoading message="Authenticating..." />}> 
+      <CallbackHandler />
+    </Suspense>
+  );
+}
+
+function CallbackHandler() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +29,6 @@ export default function CallbackPage() {
           return;
         }
 
-        // Call the backend to exchange code for session
         const response = await fetch('http://localhost:4000/api/auth/github/callback', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -36,7 +43,6 @@ export default function CallbackPage() {
         const data = await response.json();
         
         if (data.user) {
-          // Redirect to dashboard on success
           router.push('/dashboard');
         } else {
           setError('Authentication failed');
@@ -51,27 +57,35 @@ export default function CallbackPage() {
   }, [router, searchParams]);
 
   if (error) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <div style={{ textAlign: 'center' }}>
-          <h1>Authentication Error</h1>
-          <p>{error}</p>
-          <a href="/auth/login">Back to Login</a>
-        </div>
-      </div>
-    );
+    return <AuthMessage title="Authentication Error" message={error} linkHref="/auth/login" linkText="Back to Login" />;
   }
 
   if (loading) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <div style={{ textAlign: 'center' }}>
-          <h1>Authenticating...</h1>
-          <p>Please wait while we complete your sign-in.</p>
-        </div>
-      </div>
-    );
+    return <AuthLoading message="Please wait while we complete your sign-in." />;
   }
 
   return null;
+}
+
+function AuthLoading({ message }: { message: string }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+      <div style={{ textAlign: 'center' }}>
+        <h1>Authenticating...</h1>
+        <p>{message}</p>
+      </div>
+    </div>
+  );
+}
+
+function AuthMessage({ title, message, linkHref, linkText }: { title: string; message: string; linkHref: string; linkText: string }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+      <div style={{ textAlign: 'center' }}>
+        <h1>{title}</h1>
+        <p>{message}</p>
+        <a href={linkHref}>{linkText}</a>
+      </div>
+    </div>
+  );
 }
