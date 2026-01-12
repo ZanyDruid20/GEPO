@@ -9,6 +9,8 @@ const { errorHandler } = require('../middleware/error_middleware');
 const { refreshTokenIfNeeded } = require('../middleware/tokenRefresh_middleware');
 const { ApolloServer } = require('apollo-server-express');
 const { typeDefs, resolvers } = require('../graphql');
+const { getCacheStats, resetCacheStats } = require('../utils/cache');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 
@@ -17,14 +19,34 @@ connectDB();
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: ['http://localhost:3000', 'https://gepo-f4t5.vercel.app'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type']
 }));
 app.use(express.json());
-app.use(limiter); // Rate limit all requests
 const isProd = process.env.NODE_ENV === 'production';
+
+// Debug routes (dev only, with relaxed rate limit)
+const debugLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 1000, // Allow 1000 requests per minute for testing
+  skip: (req) => process.env.NODE_ENV !== 'production' // Skip rate limit in dev
+});
+
+if (!isProd) {
+  app.get('/api/debug/cache-stats', debugLimiter, (req, res) => {
+    const stats = getCacheStats();
+    const total = stats.hits + stats.misses;
+    const hitRate = total > 0 ? ((stats.hits / total) * 100).toFixed(2) : 'N/A';
+    res.json({ ...stats, total, hitRate: `${hitRate}%` });
+  });
+
+  app.post('/api/debug/cache-reset', debugLimiter, (req, res) => {
+    resetCacheStats();
+    res.json({ message: 'Cache stats reset' });
+  });
+}
 
 app.use(session({
   secret: process.env.SESSION_SECRET,
@@ -38,6 +60,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(refreshTokenIfNeeded); // Check token validity
+app.use(limiter); // Rate limit all other requests
 
 // Routes
 const authRoutes = require('../routes/auth');
@@ -65,7 +88,7 @@ async function startApolloServer() {
     app,
     path: '/graphql',
     cors: {
-      origin: 'http://localhost:3000',
+      origin: ['http://localhost:3000', 'https://gepo-f4t5.vercel.app'],
       credentials: true,
       methods: ['GET', 'POST'],
       allowedHeaders: ['Content-Type', 'Authorization']
