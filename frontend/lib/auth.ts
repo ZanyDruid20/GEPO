@@ -1,6 +1,8 @@
 import { User, Session } from '@/types/auth';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000';
+const BACKEND_URL = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+  ? 'https://github-actions-deploy-7ddg43rwta-uc.a.run.app'
+  : 'http://localhost:4000';
 
 /**
  * Get current user session from backend
