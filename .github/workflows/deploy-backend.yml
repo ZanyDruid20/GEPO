@@ -30,6 +30,14 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
+      - name: Create Artifact Registry repository if not exists
+        run: |
+          gcloud artifacts repositories create gepo \
+            --repository-format=docker \
+            --location=${{ secrets.GCP_REGION }} \
+            --description="Docker repository for GEPO backend" \
+            || echo "Repository already exists"
+
       - name: Configure Docker for Artifact Registry
         run: |
           gcloud auth configure-docker ${{ env.REGISTRY }}
