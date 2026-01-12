@@ -12,7 +12,6 @@ env:
   GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   GCP_REGION: ${{ secrets.GCP_REGION }}
   SERVICE_NAME: ${{ secrets.GCP_SERVICE_NAME }}
-  REGISTRY: ${{ secrets.GCP_REGION }}-docker.pkg.dev
 
 jobs:
   deploy:
@@ -40,23 +39,30 @@ jobs:
 
       - name: Configure Docker for Artifact Registry
         run: |
-          gcloud auth configure-docker ${{ env.REGISTRY }}
+          REGION="${{ secrets.GCP_REGION }}"
+          gcloud auth configure-docker ${REGION}-docker.pkg.dev
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/gepo/${{ secrets.GCP_SERVICE_NAME }}:${{ github.sha }} \
-            -t ${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/gepo/${{ secrets.GCP_SERVICE_NAME }}:latest \
+          REGION="${{ secrets.GCP_REGION }}"
+          REGISTRY="${REGION}-docker.pkg.dev"
+          docker build -t ${REGISTRY}/${{ secrets.GCP_PROJECT_ID }}/gepo/${{ secrets.GCP_SERVICE_NAME }}:${{ github.sha }} \
+            -t ${REGISTRY}/${{ secrets.GCP_PROJECT_ID }}/gepo/${{ secrets.GCP_SERVICE_NAME }}:latest \
             ./backend
 
       - name: Push Docker image to Artifact Registry
         run: |
-          docker push ${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/gepo/${{ secrets.GCP_SERVICE_NAME }}:${{ github.sha }}
-          docker push ${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/gepo/${{ secrets.GCP_SERVICE_NAME }}:latest
+          REGION="${{ secrets.GCP_REGION }}"
+          REGISTRY="${REGION}-docker.pkg.dev"
+          docker push ${REGISTRY}/${{ secrets.GCP_PROJECT_ID }}/gepo/${{ secrets.GCP_SERVICE_NAME }}:${{ github.sha }}
+          docker push ${REGISTRY}/${{ secrets.GCP_PROJECT_ID }}/gepo/${{ secrets.GCP_SERVICE_NAME }}:latest
 
       - name: Deploy to Cloud Run
         run: |
+          REGION="${{ secrets.GCP_REGION }}"
+          REGISTRY="${REGION}-docker.pkg.dev"
           gcloud run deploy ${{ secrets.GCP_SERVICE_NAME }} \
-            --image ${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/gepo/${{ secrets.GCP_SERVICE_NAME }}:${{ github.sha }} \
+            --image ${REGISTRY}/${{ secrets.GCP_PROJECT_ID }}/gepo/${{ secrets.GCP_SERVICE_NAME }}:${{ github.sha }} \
             --region ${{ secrets.GCP_REGION }} \
             --platform managed \
             --allow-unauthenticated \
