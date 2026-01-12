@@ -4,7 +4,7 @@ import styles from './login.module.css';
 
 export default function LoginPage() {
   const handleGitHubLogin = () => {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://github-actions-deploy-7ddg43rwta-uc.a.run.app';
     window.location.href = `${backendUrl}/api/auth/github`;
   };
 

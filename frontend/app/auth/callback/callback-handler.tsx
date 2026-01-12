@@ -21,7 +21,7 @@ export default function CallbackHandler() {
           return;
         }
 
-        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://github-actions-deploy-7ddg43rwta-uc.a.run.app';
         const response = await fetch(`${backendUrl}/api/auth/github/callback`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
