@@ -34,13 +34,20 @@ export default function Settings() {
     setLoading(true);
     setError(null);
     try {
+      // Get token from localStorage
+      const token = localStorage.getItem('auth_token');
+      
       const res = await fetch('/api/auth/delete-account', {
         method: 'DELETE',
-        credentials: 'include',
+        headers: {
+          'x-auth-token': token || '',
+        },
       });
 
       if (!res.ok) throw new Error('Failed to delete account');
 
+      // Clear token
+      localStorage.removeItem('auth_token');
       await logout();
       router.push('/');
     } catch (err) {

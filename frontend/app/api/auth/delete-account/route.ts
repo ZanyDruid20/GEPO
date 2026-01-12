@@ -2,15 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function DELETE(request: NextRequest) {
   try {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-    const cookie = request.headers.get('cookie') || '';
+    const backendUrl = 'https://github-actions-deploy-7ddg43rwta-uc.a.run.app';
+    const token = request.headers.get('x-auth-token') || '';
 
     const response = await fetch(`${backendUrl}/api/auth/delete-account`, {
       method: 'DELETE',
-      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        cookie,
+        'Authorization': `Bearer ${token}`,
       },
     });
 
