@@ -34,7 +34,7 @@ jobs:
         run: |
           gcloud artifacts repositories create gepo \
             --repository-format=docker \
-            --location=${{ secrets.GCP_REGION }} \
+            --location=us-central1 \
             --description="Docker repository for GEPO backend"
 
       - name: Configure Docker for Artifact Registry
@@ -43,20 +43,20 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/gepo/${{ secrets.GCP_SERVICE_NAME }}:${{ github.sha }} \
-            -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/gepo/${{ secrets.GCP_SERVICE_NAME }}:latest \
+          docker build -t us-central1-docker.pkg.dev/gepo-483822/gepo/github-actions-deploy:${{ github.sha }} \
+            -t us-central1-docker.pkg.dev/gepo-483822/gepo/github-actions-deploy:latest \
             ./backend
 
       - name: Push Docker image to Artifact Registry
         run: |
-          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/gepo/${{ secrets.GCP_SERVICE_NAME }}:${{ github.sha }}
-          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/gepo/${{ secrets.GCP_SERVICE_NAME }}:latest
+          docker push us-central1-docker.pkg.dev/gepo-483822/gepo/github-actions-deploy:${{ github.sha }}
+          docker push us-central1-docker.pkg.dev/gepo-483822/gepo/github-actions-deploy:latest
 
       - name: Deploy to Cloud Run
         run: |
-          gcloud run deploy ${{ secrets.GCP_SERVICE_NAME }} \
-            --image us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/gepo/${{ secrets.GCP_SERVICE_NAME }}:${{ github.sha }} \
-            --region ${{ secrets.GCP_REGION }} \
+          gcloud run deploy github-actions-deploy \
+            --image us-central1-docker.pkg.dev/gepo-483822/gepo/github-actions-deploy:${{ github.sha }} \
+            --region us-central1 \
             --platform managed \
             --allow-unauthenticated \
             --set-env-vars NODE_ENV=${{ secrets.NODE_ENV }} \
@@ -75,6 +75,6 @@ jobs:
       - name: Output Cloud Run URL
         run: |
           echo "Backend deployed successfully!"
-          gcloud run services describe ${{ secrets.GCP_SERVICE_NAME }} \
-            --region ${{ env.GCP_REGION }} \
+          gcloud run services describe github-actions-deploy \
+            --region us-central1 \
             --format 'value(status.url)'
