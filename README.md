@@ -19,16 +19,18 @@ Provides a clean dashboard, charts, and summaries, plus account management (logo
 
 # Backend
 1. Node.js, Express.js
-2. MongoDB, Redis
-3. Passport.js (GitHub OAuth)
+2. MongoDB Atlas, Redis(Upstash)
+3. Passport.js (GitHub OAuth, JWT)
 4. GraphQL (Apollo Server)
 5. Jest (Testing)
 
 # DevOps
-1. GCP (Cloud Run, Artifact Registry, Cloud Monitoring)
+1. GCP (Backend hosting)
 2. Vercel (frontend hosting)
 3. GitHub Actions (CI/CD)
 4. Docker (containerization)
+5. Container Registry: GCP Artifact Registry
+6. Secrets: GitHub Secrets
 
 
 # Results
