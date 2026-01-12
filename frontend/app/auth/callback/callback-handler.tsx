@@ -12,11 +12,23 @@ export default function CallbackHandler() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
+        // Check for JWT token in URL (new token-based flow)
+        const token = searchParams.get('token');
+        
+        if (token) {
+          // Store token in localStorage
+          localStorage.setItem('auth_token', token);
+          setLoading(false);
+          router.push('/dashboard');
+          return;
+        }
+
+        // Fallback to old OAuth code flow (shouldn't reach here with new backend)
         const code = searchParams.get('code');
         const state = searchParams.get('state');
 
         if (!code) {
-          setError('No authorization code received from GitHub');
+          setError('No authorization code or token received');
           setLoading(false);
           return;
         }

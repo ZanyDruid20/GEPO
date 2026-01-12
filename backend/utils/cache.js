@@ -2,6 +2,21 @@ const redis = require("../db/redis");
 
 const DEFAULT_TTL_SECONDS = 300;
 
+// Simple in-memory counters for hit/miss instrumentation (resettable).
+const stats = {
+  hits: 0,
+  misses: 0,
+};
+
+function resetCacheStats() {
+  stats.hits = 0;
+  stats.misses = 0;
+}
+
+function getCacheStats() {
+  return { ...stats };
+}
+
 function tokenKey(token) {
   return token ? "auth" : "anon";
 }
@@ -29,8 +44,12 @@ async function setJSON(key, value, ttlSeconds = DEFAULT_TTL_SECONDS) {
 async function withCache(key, ttlSeconds, fetcher) {
   const ttl = ttlSeconds ?? DEFAULT_TTL_SECONDS;
   const cached = await getJSON(key);
-  if (cached !== null) return cached;
+  if (cached !== null) {
+    stats.hits += 1;
+    return cached;
+  }
 
+  stats.misses += 1;
   const fresh = await fetcher();
   if (fresh !== undefined) {
     await setJSON(key, fresh, ttl);
@@ -44,4 +63,6 @@ module.exports = {
   setJSON,
   withCache,
   tokenKey,
+  getCacheStats,
+  resetCacheStats,
 };

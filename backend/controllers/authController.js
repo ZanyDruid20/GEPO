@@ -1,5 +1,6 @@
 const passport = require('passport');
 const User = require('../models/User');
+const jwt = require('jsonwebtoken');
 require('../config/passport'); // Ensure passport strategies are configured
 
 // GitHub OAUTH Controllers
@@ -37,9 +38,21 @@ exports.githubCallback = (req, res, next) => {
                 }
                 // Successful authentication
                 req.session.githubAccessToken = dbUser.accessToken;
-                // Redirect to frontend dashboard
+                
+                // Generate JWT token for frontend
+                const token = jwt.sign(
+                    { 
+                        userId: dbUser._id, 
+                        githubId: dbUser.githubId,
+                        username: dbUser.username 
+                    },
+                    process.env.SESSION_SECRET,
+                    { expiresIn: '7d' }
+                );
+                
+                // Redirect to frontend dashboard with token
                 const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-                return res.redirect(`${frontendUrl}/dashboard`);
+                return res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
             });
         } catch (error) {
             return res.status(500).json({ message: 'Database error', error: error.message });

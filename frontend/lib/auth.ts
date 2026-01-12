@@ -9,12 +9,27 @@ const BACKEND_URL = typeof window !== 'undefined' && window.location.hostname !=
  */
 export async function getSession(): Promise<Session> {
   try {
-    const response = await fetch(`${BACKEND_URL}/api/auth/session`, {
+    // Get token from localStorage
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    
+    if (!token) {
+      return { user: null, isAuthenticated: false };
+    }
+
+    // Verify token with backend
+    const response = await fetch(`${BACKEND_URL}/api/token/verify`, {
       method: 'GET',
-      credentials: 'include', // include cookies
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
     });
 
     if (!response.ok) {
+      // Token invalid/expired, remove it
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('auth_token');
+      }
       return { user: null, isAuthenticated: false };
     }
 
@@ -47,7 +62,12 @@ export async function getCurrentUser(): Promise<User | null> {
  */
 export async function logout(): Promise<void> {
   try {
-    const response = await fetch(`${BACKEND_URL}/auth/logout`, {
+    // Remove token from localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth_token');
+    }
+
+    const response = await fetch(`${BACKEND_URL}/api/auth/logout`, {
       method: 'POST',
       credentials: 'include',
     });

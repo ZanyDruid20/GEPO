@@ -64,12 +64,14 @@ app.use(limiter); // Rate limit all other requests
 
 // Routes
 const authRoutes = require('../routes/auth');
+const tokenRoutes = require('../routes/token');
 const languagesRoutes = require('../routes/languages');
 const commitsRoutes = require('../routes/commits');
 const scoresRoutes = require('../routes/scores');
 const wrappedRoutes = require('../routes/wrapped');
 
 app.use('/api/auth', authRoutes);
+app.use('/api/token', tokenRoutes);
 app.use('/api/languages', languagesRoutes);
 app.use('/api/commits', commitsRoutes);
 app.use('/api/scores', scoresRoutes);
