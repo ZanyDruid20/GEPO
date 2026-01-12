@@ -59,7 +59,7 @@ jobs:
             --region us-central1 \
             --platform managed \
             --allow-unauthenticated \
-            --set-env-vars "NODE_ENV=${{ secrets.NODE_ENV }},MONGODB_URI=${{ secrets.MONGODB_URI }},SESSION_SECRET=${{ secrets.SESSIONS_SECRET }},GITHUB_CLIENT_ID=${{ secrets.CLIENT_ID }},GITHUB_CLIENT_SECRET=${{ secrets.CLIENT_ARMOR }},GITHUB_TOKEN=${{ secrets.MY_TOKEN }},REDIS_URL=${{ secrets.REDIS_URL }},CALLBACK_URL=https://github-actions-deploy-7ddg43rwta-uc.a.run.app/api/auth/github/callback" \
+            --set-env-vars "NODE_ENV=${{ secrets.NODE_ENV }},MONGODB_URI=${{ secrets.MONGODB_URI }},SESSION_SECRET=${{ secrets.SESSIONS_SECRET }},GITHUB_CLIENT_ID=${{ secrets.CLIENT_ID }},GITHUB_CLIENT_SECRET=${{ secrets.CLIENT_ARMOR }},GITHUB_TOKEN=${{ secrets.MY_TOKEN }},REDIS_URL=${{ secrets.REDIS_URL }},CALLBACK_URL=https://github-actions-deploy-7ddg43rwta-uc.a.run.app/api/auth/github/callback,FRONTEND_URL=https://gepo-f4t5.vercel.app" \
             --min-instances 0 \
             --max-instances 10 \
             --memory 512Mi \
