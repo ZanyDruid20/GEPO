@@ -30,6 +30,12 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
+      - name: Verify required secrets are set
+        run: |
+          [ -n "${{ secrets.MONGODB_URI }}" ] && echo "MONGODB_URI set" || echo "MONGODB_URI missing"
+          [ -n "${{ secrets.SESSION_SECRET }}" ] && echo "SESSION_SECRET set" || echo "SESSION_SECRET missing"
+          [ -n "${{ secrets.REDIS_URL }}" ] && echo "REDIS_URL set" || echo "REDIS_URL missing"
+
       - name: Create Artifact Registry repository if not exists
         continue-on-error: true
         run: |
